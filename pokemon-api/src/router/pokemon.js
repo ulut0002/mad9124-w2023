@@ -1,28 +1,30 @@
+/**
+ *
+ *  Router for the "Pokemon" object
+ *
+ */
+
 const express = require("express");
 const pokemonController = require("../controller/pokemon");
 const {
   validatePokemonId,
   validateCreateData,
   validatePatchData,
-} = require("../middleware/validatePokemonId");
+  validateReplaceData,
+} = require("../middleware/validatePokemon");
 
 const router = express.Router();
 
-router.get("/", pokemonController.getAll);
-router.get("/:id", validatePokemonId, pokemonController.getOne);
-router.post("/", validateCreateData, pokemonController.create);
-router.put(
-  "/:id",
-  validatePokemonId,
-  validatePatchData,
-  pokemonController.replace
-);
-router.patch(
-  "/:id",
-  validatePokemonId,
-  validatePatchData,
-  pokemonController.update
-);
-router.delete("/:id", validatePokemonId, pokemonController.deleteOne);
+router
+  .route("/")
+  .get(pokemonController.getAll)
+  .post(validateCreateData, pokemonController.create);
+
+router
+  .route("/:id")
+  .get(validatePokemonId, pokemonController.getOne)
+  .put(validatePokemonId, validateReplaceData, pokemonController.replace)
+  .patch(validatePokemonId, validatePatchData, pokemonController.update)
+  .delete(validatePokemonId, pokemonController.deleteOne);
 
 module.exports = router;

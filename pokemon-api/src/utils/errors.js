@@ -1,6 +1,5 @@
 "use strict";
 const createDebug = require("debug");
-
 const debug = createDebug("app:errorHandler");
 
 class ApiError extends Error {

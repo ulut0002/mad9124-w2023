@@ -1,6 +1,11 @@
 {
   "name": "pokemon-api",
+  "version": "1.0.0",
+  "description": "Midterm project for the MAD9124 W2023",
   "packageManager": "yarn@3.3.1",
+  "author": "Serdar Ulutas",
+  "main": "index.js",
+  "license": "MIT",
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js"
