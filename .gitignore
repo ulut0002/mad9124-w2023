@@ -1,4 +1,8 @@
 pokemon-api/.yarn/*
-
+/pokemon-api/.yarn/*
+pokemon-api/.yarn
+/pokemon-api/.yarn
 
 pokemon-api/.env
+/pokemon-api/.env
+.DS_Store
