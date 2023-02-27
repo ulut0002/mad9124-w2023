@@ -1,8 +1,4 @@
 pokemon-api/.yarn/*
-!pokemon-api/.yarn/patches
-!pokemon-api/.yarn/plugins
-!pokemon-api/.yarn/releases
-!pokemon-api/.yarn/sdks
-!pokemon-api/.yarn/versions
+
 
 pokemon-api/.env
