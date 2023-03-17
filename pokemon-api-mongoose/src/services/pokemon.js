@@ -1,64 +1,72 @@
+"use strict";
+
 /**
  *
  * Service functions manipulates "pokemons" data object.
  * These functions are called by the "pokemon controller"
- * Data is stored in "pokemons" array object, which is sourced from the /models/pokemon.js file
+ * It connects to Atlas Mongo db..
  *
  */
 
-const data = require("../models/pokemon");
-const pokemons = data?.pokemons;
+const Pokemon = require("../models/Pokemon");
+const { NotFoundError } = require("../utils/errors");
 
-// init pokemon  array if necessary
-if (!pokemons || !Array.isArray(pokemons)) pokemons = [];
+// list of fields to return back with response
+const selectFields = "_id name type abilities";
 
-const getAllPokemons = () => {
+const getAllPokemons = async () => {
+  const pokemons = await Pokemon.find({}).select(selectFields);
   return pokemons;
 };
 
 // Finds a pokemon object by id.
-// "strict equality" is not used on purpose because I wanted "1" equal to integer 1
-const getOnePokemon = (id) => {
-  const pokemon = pokemons.find((pokemon) => pokemon.id == id);
+const getOnePokemon = async (id) => {
+  const pokemon = await Pokemon.findById(id).select(selectFields);
   return pokemon;
 };
 
-// Creates a brand new Pokemon object and adds to the array
-// for "id", id of last object is found and increased by one
-const createPokemon = (name, type, abilities) => {
-  let id = (pokemons.at(-1).id || 0) + 1;
-  const newPokemon = { id, name, type, abilities };
-  data.pokemons.push(newPokemon);
-  return newPokemon;
+// Creates a brand new Pokemon object
+const createPokemon = async (name, type, abilities) => {
+  const newPokemon = new Pokemon({
+    name,
+    type,
+    abilities,
+  });
+  const savedPokemon = await newPokemon.save();
+  return await getOnePokemon(savedPokemon._id);
 };
 
 // put() and patch() functions call this function to replace the object.
 // this function accepts an existing pokemon, find the object in the array and replaces it with the new version
-const createReplacePokemon = (id, name, type, abilities) => {
-  const pokemon = { id, name, type, abilities };
+const createReplacePokemon = async (id, name, type, abilities) => {
+  const params = {};
+  if (name) params.name = name;
+  if (type) params.type = type;
+  if (abilities) params.abilities = abilities;
 
-  const idx = findPokemonIndex(pokemon.id);
-  // Additional check is beneficial for race-conditions. Another process might have deleted the object already
-  if (idx === -1) {
+  console.log("params", params);
+
+  const pokemonEntry = await Pokemon.findById(id);
+  if (!pokemonEntry) {
     throw new NotFoundError(`Pokemon with id ${id} not found`);
   }
 
-  data.pokemons[idx] = pokemon;
-  return pokemon;
+  const updatedEntry = { ...params };
+  console.log("updatedEntry", updatedEntry);
+
+  return await Pokemon.findByIdAndUpdate(id, updatedEntry, {
+    returnOriginal: false,
+  }).select(selectFields);
 };
 
-const deleteOne = (id) => {
-  const idx = findPokemonIndex(id);
-  // Maybe a race-condition
-  if (idx === -1) throw new NotFoundError(`Pokemon with id ${id} not found`);
-  const objToDelete = { ...data.pokemons[idx] };
-  data.pokemons.splice(idx, 1);
-  return objToDelete;
-};
+const deleteOne = async (id) => {
+  const deletedPokemon = await Pokemon.findByIdAndDelete(id, {
+    returnOriginal: true,
+  });
 
-const findPokemonIndex = (id) => {
-  // == is used instead of === because I want text "1" being equal to integer 1
-  return data.pokemons.findIndex((item) => item.id == id);
+  if (!deletedPokemon)
+    throw new NotFoundError(`Pokemon with id ${id} not found`);
+  return deletedPokemon;
 };
 
 module.exports = {

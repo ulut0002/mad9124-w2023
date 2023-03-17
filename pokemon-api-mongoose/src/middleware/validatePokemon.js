@@ -5,19 +5,12 @@
  *
  */
 
-const { getOnePokemon } = require("../services/pokemon");
-const { BadRequestError, NotFoundError } = require("../utils/errors");
+const { BadRequestError } = require("../utils/errors");
 
-// Used by controllers that require a pokemon object.
-// Found pokemon object is stored in req.body.pokemon
+// Just a simple check for incoming id
 const validatePokemonId = (req, res, next) => {
   const { id } = req.params;
   if (!id) throw new BadRequestError("Pokemon id is required");
-
-  const pokemon = getOnePokemon(id);
-  if (!pokemon) throw new NotFoundError(`Pokemon with id ${id} not found`);
-
-  req.body.pokemon = pokemon;
   next();
 };
 
@@ -27,45 +20,41 @@ const validatePokemonId = (req, res, next) => {
 // 3. Assigns each given and corrected variable to req.body.name, req.body.type and req.body.abilities elements
 const validateCreateData = (req, _, next) => {
   let { name, type, abilities } = req.body;
-  const newPokemonData = { name, type, abilities };
-  const goodPokemonData = checkPokemonData(newPokemonData);
+  const goodPokemonData = validatePokemonData({ name, type, abilities });
 
   req.body.name = goodPokemonData.name;
   req.body.type = goodPokemonData.type;
   req.body.abilities = goodPokemonData.abilities;
-
   next();
 };
 
 // Used for the put() function
-// creates an object (updatedObj) to represent the final version of the pokemon obj. Then, checks its values:  if all the parameters  are correct, req.body.pokemon is updated
+// creates an object (updatedObj) to represent the final version of the pokemon obj.
+// Then, checks its values:  if all the parameters  are correct, req.body.pokemon is updated
 const validateReplaceData = (req, _, next) => {
   const { name, type, abilities } = req.body;
-  const updatedObj = { ...req.body.pokemon, name, type, abilities };
-  const goodPokemonData = checkPokemonData(updatedObj);
-  req.body.pokemon = { ...req.body.pokemon, ...goodPokemonData };
+
+  const updatedObj = { name, type, abilities };
+  const goodPokemonData = validatePokemonData(updatedObj);
+  goodPokemonData.id = req.params.id;
+  req.body.pokemon = goodPokemonData;
   next();
 };
 
 // Used for patch() function
-// create an object (updatedObj) to represent the final version of the object. And check its values
+// System only checks existing data
 // if all the parameters  are correct, req.body.pokemon is updated
 const validatePatchData = (req, _, next) => {
   const { name, type, abilities } = req.body;
-  const updatedObj = { ...req.body.pokemon };
+  const updatedObj = { name, type, abilities };
 
-  if (name) updatedObj.name = name;
-  if (type) updatedObj.type = type;
-  if (abilities) updatedObj.abilities = abilities;
-
-  const goodPokemonData = checkPokemonData(updatedObj);
-  req.body.pokemon = { ...req.body.pokemon, ...goodPokemonData };
+  const goodPokemonData = fixIncomingData(updatedObj);
+  goodPokemonData.id = req.params.id;
+  req.body.pokemon = goodPokemonData;
   next();
 };
 
-// This function checks name type abilities of a pokemon object
-// In case of any serious problems, it throws an Error
-const checkPokemonData = (pokemonData) => {
+const fixIncomingData = (pokemonData) => {
   let name = pokemonData?.name;
   let type = pokemonData?.type;
   let abilities = pokemonData?.abilities;
@@ -77,6 +66,25 @@ const checkPokemonData = (pokemonData) => {
   if (abilities && !Array.isArray(abilities)) {
     abilities = [abilities];
   }
+  if (abilities) {
+    validateArray(abilities);
+  }
+
+  const returnObj = {};
+  if (name) returnObj.name = name;
+  if (type) returnObj.type = type;
+  if (abilities) returnObj.abilities = abilities;
+  return returnObj;
+};
+
+// This function checks name type abilities of a pokemon object
+// In case of any serious problems, it throws an Error
+const validatePokemonData = (pokemonData) => {
+  const fixedData = fixIncomingData(pokemonData);
+
+  let name = fixedData?.name;
+  let type = fixedData?.type;
+  let abilities = fixedData?.abilities;
 
   // check mandatory values
   if (!name || !type || !abilities) {
@@ -85,22 +93,9 @@ const checkPokemonData = (pokemonData) => {
     );
   }
 
-  if (abilities.length === 0) {
-    throw new BadRequestError(`Provide a list of abilities`);
-  }
-
   // Abilities array must contain "string" type only.
   // Each ability must be a non-blank string
-  abilities.forEach((ability, index) => {
-    if (typeof ability !== "string") {
-      throw new BadRequestError(`Each ability must be a valid string.`);
-    }
-    ability = ability.trim();
-    if (!ability) {
-      throw new BadRequestError(`Each ability must be a valid string.`);
-    }
-    abilities[index] = ability;
-  });
+  validateArray(abilities);
 
   // return an object that contains the well-formatted elements
   return {
@@ -108,6 +103,26 @@ const checkPokemonData = (pokemonData) => {
     type,
     abilities,
   };
+};
+
+// validates the array only if it is given
+const validateArray = (arr) => {
+  if (arr.length === 0) {
+    throw new BadRequestError(`Provide a list of abilities`);
+  }
+
+  // Abilities array must contain "string" type only.
+  // Each ability must be a non-blank string
+  arr.forEach((ability, index) => {
+    if (typeof ability !== "string") {
+      throw new BadRequestError(`Each ability must be a valid string.`);
+    }
+    ability = ability.trim();
+    if (!ability) {
+      throw new BadRequestError(`Each ability must be a valid string.`);
+    }
+    arr[index] = ability;
+  });
 };
 
 module.exports = {

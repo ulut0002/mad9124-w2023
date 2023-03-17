@@ -1,20 +1,20 @@
 /**
  *
- *
  *  Entry point of the app: index.js
  *
  */
 
 "use strict";
 
+require("dotenv").config();
+
 const express = require("express");
 const pokemonRouter = require("./router/pokemon");
-const trainerRouter = require("./router/trainer");
-const { errorHandler, NotFoundError } = require("./utils/errors");
+const { errorHandler } = require("./utils/errors");
 const morgan = require("morgan");
 const app = express();
+require("./utils/db");
 
-require("dotenv").config();
 app.use(express.json());
 app.use(morgan("tiny"));
 
@@ -23,7 +23,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/pokemon", pokemonRouter);
-app.use("/api/trainer", trainerRouter);
 app.use(errorHandler);
 
 const PORT = process.env.PORT | 3030;

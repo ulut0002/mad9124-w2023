@@ -1,36 +1,20 @@
-const data = {
-  pokemons: [
-    {
-      id: 1,
-      name: "Pikachu",
-      type: "Electric",
-      abilities: ["Static", "Lightning Rod"],
-    },
-    {
-      id: 2,
-      name: "Charmander",
-      type: "Fire",
-      abilities: ["Blaze", "Solar Power"],
-    },
-    {
-      id: 3,
-      name: "Squirtle",
-      type: "Water",
-      abilities: ["Torrent", "Rain Dish"],
-    },
-    {
-      id: 4,
-      name: "Hypno",
-      type: "Psychic",
-      abilities: ["Insomnia", "Forewarn"],
-    },
-    {
-      id: 5,
-      name: "Dragonite",
-      type: "Dragon",
-      abilities: ["Multiscale", "Inner Focus"],
-    },
-  ],
-};
+"use strict";
 
-module.exports = data;
+const { Schema, model } = require("mongoose");
+
+const pokemonSchema = new Schema({
+  name: {
+    type: String,
+    required: [true, "Enter a valid pokemon name"],
+  },
+  type: {
+    type: String,
+    required: [true, "Enter a valid type"],
+  },
+  abilities: {
+    type: [String],
+    required: [true, "Abilities must be a string array"],
+  },
+});
+
+module.exports = model("pokemon", pokemonSchema);
