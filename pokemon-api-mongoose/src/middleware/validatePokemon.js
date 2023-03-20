@@ -1,22 +1,29 @@
 /**
  *
- *
  *  Middleware functions for the Pokemon object
  *
  */
 
+const { default: mongoose } = require("mongoose");
 const { BadRequestError } = require("../utils/errors");
 
 // Just a simple check for incoming id
 const validatePokemonId = (req, res, next) => {
   const { id } = req.params;
-  if (!id) throw new BadRequestError("Pokemon id is required");
+  if (!id) {
+    throw new BadRequestError("Pokemon id is required");
+  }
+
+  // Source: ChatGPT
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new BadRequestError(`Enter a valid id`);
+  }
   next();
 };
 
 // This middleware function is used by "createPokemon" function. The function:
 // 1. Checks each parameter and their validity: throws an error if the validity check fails
-// 2. Creates a brand new object that contains correct data. For example, text data in this object is always trimmed.
+// 2. Creates a brand new object that contains correct data. For example, 'text' data in this object is always trimmed.
 // 3. Assigns each given and corrected variable to req.body.name, req.body.type and req.body.abilities elements
 const validateCreateData = (req, _, next) => {
   let { name, type, abilities } = req.body;
@@ -54,6 +61,7 @@ const validatePatchData = (req, _, next) => {
   next();
 };
 
+// checks and fixes available data only if it exists in the incoming request
 const fixIncomingData = (pokemonData) => {
   let name = pokemonData?.name;
   let type = pokemonData?.type;
@@ -67,7 +75,7 @@ const fixIncomingData = (pokemonData) => {
     abilities = [abilities];
   }
   if (abilities) {
-    validateArray(abilities);
+    validateAbilitiesArray(abilities);
   }
 
   const returnObj = {};
@@ -77,8 +85,7 @@ const fixIncomingData = (pokemonData) => {
   return returnObj;
 };
 
-// This function checks name type abilities of a pokemon object
-// In case of any serious problems, it throws an Error
+// This function is used by PUT router. Name, Type and Abilities are all mandatory fields.
 const validatePokemonData = (pokemonData) => {
   const fixedData = fixIncomingData(pokemonData);
 
@@ -95,7 +102,7 @@ const validatePokemonData = (pokemonData) => {
 
   // Abilities array must contain "string" type only.
   // Each ability must be a non-blank string
-  validateArray(abilities);
+  validateAbilitiesArray(abilities);
 
   // return an object that contains the well-formatted elements
   return {
@@ -106,14 +113,14 @@ const validatePokemonData = (pokemonData) => {
 };
 
 // validates the array only if it is given
-const validateArray = (arr) => {
-  if (arr.length === 0) {
+const validateAbilitiesArray = (abilities) => {
+  if (abilities.length === 0) {
     throw new BadRequestError(`Provide a list of abilities`);
   }
 
   // Abilities array must contain "string" type only.
   // Each ability must be a non-blank string
-  arr.forEach((ability, index) => {
+  abilities.forEach((ability, index) => {
     if (typeof ability !== "string") {
       throw new BadRequestError(`Each ability must be a valid string.`);
     }
@@ -121,7 +128,7 @@ const validateArray = (arr) => {
     if (!ability) {
       throw new BadRequestError(`Each ability must be a valid string.`);
     }
-    arr[index] = ability;
+    abilities[index] = ability;
   });
 };
 
