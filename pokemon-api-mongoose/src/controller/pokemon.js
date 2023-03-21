@@ -1,3 +1,5 @@
+"use strict";
+
 const pokemonService = require("../services/pokemon");
 
 // Return all existing pokemons
@@ -9,9 +11,13 @@ const getAll = async (_, res) => {
 // Return one pokemon entry only.
 // Note that the pokemon entry is found within the middleware.
 // This function is still called (via next()) in order to all extra operations, such as keeping track of statistics.
-const getOne = async (req, res) => {
-  const pokemon = await pokemonService.getOnePokemon(req.params.id);
-  res.status(200).json({ pokemon });
+const getOne = async (req, res, next) => {
+  try {
+    const pokemon = await pokemonService.getOnePokemon(req.params.id);
+    res.status(200).json({ pokemon });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Creates a new pokemon entry
@@ -51,7 +57,6 @@ const replace = async (req, res, next) => {
 // This is because both functions accepts the desired versions of the Pokemon object. So in a sense, both functions call the "replace" function
 const update = async (req, res, next) => {
   const { id, name, type, abilities } = req.body.pokemon;
-  console.log("pokemon", req.body.pokemon);
   try {
     const pokemon = await pokemonService.createReplacePokemon(
       id,
@@ -67,7 +72,7 @@ const update = async (req, res, next) => {
 
 // deletes a Pokemon object from the array and returns the deleted object
 const deleteOne = async (req, res, next) => {
-  const id = req.body.id;
+  const { id } = req.params;
   try {
     deletedObj = await pokemonService.deleteOne(id);
     res.status(200).json({ data: deletedObj });

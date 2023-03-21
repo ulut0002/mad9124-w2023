@@ -16,7 +16,7 @@ const app = express();
 require("./utils/db");
 
 app.use(express.json());
-app.use(morgan("tiny"));
+// app.use(morgan("tiny"));
 
 app.get("/", (req, res) => {
   res.status(200).json({ data: "Server is running" });

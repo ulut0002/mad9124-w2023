@@ -44,21 +44,19 @@ const createReplacePokemon = async (id, name, type, abilities) => {
   if (type) params.type = type;
   if (abilities) params.abilities = abilities;
 
-  console.log("params", params);
-
   const pokemonEntry = await Pokemon.findById(id);
   if (!pokemonEntry) {
     throw new NotFoundError(`Pokemon with id ${id} not found`);
   }
 
   const updatedEntry = { ...params };
-  console.log("updatedEntry", updatedEntry);
 
   return await Pokemon.findByIdAndUpdate(id, updatedEntry, {
     returnOriginal: false,
   }).select(selectFields);
 };
 
+//delete a pokemon entry by id.
 const deleteOne = async (id) => {
   const deletedPokemon = await Pokemon.findByIdAndDelete(id, {
     returnOriginal: true,
