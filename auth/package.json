@@ -1,0 +1,23 @@
+{
+  "name": "pokemon-api",
+  "version": "1.0.0",
+  "description": "Midterm project for the MAD9124 W2023",
+  "packageManager": "yarn@3.3.1",
+  "author": "Serdar Ulutas",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "debug": "^4.3.4",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^7.0.2"
+  },
+  "devDependencies": {
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.20"
+  }
+}
