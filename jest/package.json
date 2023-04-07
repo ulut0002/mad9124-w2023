@@ -1,0 +1,12 @@
+{
+  "name": "jest",
+  "packageManager": "yarn@3.3.1",
+  "scripts": {
+    "dev": "nodemon service.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.22"
+  }
+}
